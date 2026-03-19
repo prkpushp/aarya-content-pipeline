@@ -1,0 +1,40 @@
+
+name: Daily Aarya Post
+
+on:
+  workflow_dispatch: # Allows manual triggering
+  schedule:
+    - cron: '30 14 * * *' # Runs daily at 2:30 PM UTC, which is 8:00 PM IST
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Authenticate to Google Cloud
+      uses: 'google-github-actions/auth@v2'
+      with:
+        credentials_json: '${{ secrets.GCP_SERVICE_ACCOUNT }}'
+
+    - name: Run content pipeline
+      run: python main.py
+      env:
+        GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+        GCP_LOCATION: 'us-central1'
+        GCS_BUCKET_NAME: ${{ secrets.GCS_BUCKET_NAME }}
+        INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
+        FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
